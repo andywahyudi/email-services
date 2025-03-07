@@ -22,10 +22,13 @@ A robust PHP library for handling multiple email service providers with failover
 ```bash
 composer require email-services/library
 ```
-## ## Configuration
+## Configuration
 Create a .env file in your project root (copy from .env.example ):
 
 ```bash
+# Default Provider Configuration
+DEFAULT_EMAIL_PROVIDER=mailgun  # Options: mailgun, sendgrid, postmark
+
 # SendGrid Configuration
 SENDGRID_API_KEY=your_sendgrid_api_key_here
 SENDGRID_USE_SMTP=false
@@ -44,17 +47,17 @@ POSTMARK_USE_SMTP=false
 ```
 
 ## Usage
-### Basic Usage
+### Basic Usage with Default Provider
 ```php
 use EmailServices\Library\EmailServiceManager;
 use EmailServices\Library\Providers\MailgunService;
 use EmailServices\Library\Providers\SendGridService;
 use EmailServices\Library\Providers\PostmarkService;
 
-// Initialize the Email Service Manager
+// Initialize the Email Service Manager (will use DEFAULT_EMAIL_PROVIDER from .env)
 $emailManager = new EmailServiceManager();
 
-// Configure providers
+// Configure and add providers
 $mailgunConfig = [
     'api_key' => getenv('MAILGUN_API_KEY'),
     'domain' => getenv('MAILGUN_DOMAIN'),
@@ -77,24 +80,22 @@ $emailManager
     ->addProvider(new SendGridService($sendGridConfig))
     ->addProvider(new PostmarkService($postmarkConfig));
 
-// Send an email
+// Optionally change default provider at runtime
+$emailManager->setDefaultProvider('sendgrid');
+
+// Get current default provider
+$currentProvider = $emailManager->getDefaultProvider();
+
+// Get list of available providers
+$availableProviders = $emailManager->getAvailableProviders();
+
+// Send email (will use default provider first)
 try {
     $emailManager->send(
         'recipient@example.com',
         'Test Subject',
         '<h1>Hello World!</h1>',
-        [
-            'from' => 'sender@yourdomain.com',
-            'cc' => ['cc@example.com'],
-            'bcc' => ['bcc@example.com'],
-            'attachments' => [
-                [
-                    'path' => '/path/to/file.pdf',
-                    'name' => 'document.pdf',
-                    'type' => 'application/pdf'
-                ]
-            ]
-        ]
+        ['from' => 'sender@yourdomain.com']
     );
 } catch (\Exception $e) {
     echo "Failed to send email: " . $e->getMessage();
@@ -113,21 +114,27 @@ $mailgunConfig = [
     'from_address' => 'your_sender@your_domain.com'
 ];
 ```
+### Provider Failover
+The library will:
+1. Attempt to send using the default provider first (if configured).
+2. If the default provider fails, it will automatically try other available providers.
+3. If all providers fail, it will throw an exception with detailed error messages.
+
 ## Available Providers
 1. Mailgun
-   - API and SMTP support
-   - Domain verification required
-   - Supports attachments, CC, and BCC
+   - API and SMTP support.
+   - Domain verification required.
+   - Supports attachments, CC, and BCC.
 
 2. SendGrid
-   - API and SMTP support
-   - Sender verification required
-   - Supports attachments, CC, and BCC
+   - API and SMTP support.
+   - Sender verification required.
+   - Supports attachments, CC, and BCC.
    
 3. Postmark
-   - API and SMTP support
-   - Server token required
-   - Supports attachments, CC, and BCC
+   - API and SMTP support.
+   - Server token required.
+   - Supports attachments, CC, and BCC.
 
 ## Error Handling
 The library implements a failover system. If one provider fails, it automatically tries the next available provider. If all providers fail, an exception is thrown with detailed error messages from each provider.

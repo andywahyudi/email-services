@@ -6,35 +6,36 @@ use EmailServices\Library\Contracts\EmailServiceInterface;
 
 class EmailServiceManager
 {
-    /**
-     * List of email service providers
-     *
-     * @var EmailServiceInterface[]
-     */
     private array $providers = [];
+    private ?string $defaultProvider;
 
-    /**
-     * Add an email service provider
-     *
-     * @param EmailServiceInterface $provider
-     * @return self
-     */
+    public function __construct(?string $defaultProvider = null)
+    {
+        $this->defaultProvider = strtolower($defaultProvider ?? getenv('DEFAULT_EMAIL_PROVIDER') ?: '');
+    }
+
     public function addProvider(EmailServiceInterface $provider): self
     {
-        $this->providers[] = $provider;
+        $name = strtolower($provider->getProviderName());
+        $this->providers[$name] = $provider;
         return $this;
     }
 
-    /**
-     * Send an email using available providers with failover support
-     *
-     * @param string $to
-     * @param string $subject
-     * @param string $body
-     * @param array $options
-     * @return bool
-     * @throws \Exception When all providers fail
-     */
+    public function setDefaultProvider(string $providerName): self
+    {
+        $providerName = strtolower($providerName);
+        if (!isset($this->providers[$providerName])) {
+            throw new \Exception("Provider '{$providerName}' not found");
+        }
+        $this->defaultProvider = $providerName;
+        return $this;
+    }
+
+    public function getDefaultProvider(): ?string
+    {
+        return $this->defaultProvider;
+    }
+
     public function send(string $to, string $subject, string $body, array $options = []): bool
     {
         if (empty($this->providers)) {
@@ -42,8 +43,29 @@ class EmailServiceManager
         }
 
         $exceptions = [];
+        
+        // Try default provider first if set
+        if ($this->defaultProvider && isset($this->providers[$this->defaultProvider])) {
+            try {
+                $provider = $this->providers[$this->defaultProvider];
+                if ($provider->isAvailable()) {
+                    $result = $provider->send($to, $subject, $body, $options);
+                    if ($result) {
+                        return true;
+                    }
+                }
+            } catch (\Exception $e) {
+                $exceptions[] = sprintf('[%s] %s', $provider->getProviderName(), $e->getMessage());
+            }
+        }
 
-        foreach ($this->providers as $provider) {
+        // If default provider fails or not set, try others as fallback
+        foreach ($this->providers as $name => $provider) {
+            // Skip if this is the default provider we already tried
+            if ($name === $this->defaultProvider) {
+                continue;
+            }
+
             try {
                 if ($provider->isAvailable()) {
                     $result = $provider->send($to, $subject, $body, $options);
@@ -61,24 +83,26 @@ class EmailServiceManager
         );
     }
 
-    /**
-     * Get all configured providers
-     *
-     * @return EmailServiceInterface[]
-     */
     public function getProviders(): array
     {
         return $this->providers;
     }
 
-    /**
-     * Remove all providers
-     *
-     * @return self
-     */
     public function clearProviders(): self
     {
         $this->providers = [];
+        $this->defaultProvider = null;
         return $this;
+    }
+
+    public function getAvailableProviders(): array
+    {
+        $available = [];
+        foreach ($this->providers as $name => $provider) {
+            if ($provider->isAvailable()) {
+                $available[$name] = $provider;
+            }
+        }
+        return $available;
     }
 }
