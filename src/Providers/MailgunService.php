@@ -1,8 +1,8 @@
 <?php
 
-namespace EmailServices\Library\Providers;
+namespace MultiEmailServices\Library\Providers;
 
-use EmailServices\Library\AbstractEmailService;
+use MultiEmailServices\Library\AbstractEmailService;
 use Mailgun\Mailgun;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;

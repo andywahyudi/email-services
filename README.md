@@ -49,10 +49,10 @@ POSTMARK_USE_SMTP=false
 ## Usage
 ### Basic Usage with Default Provider
 ```php
-use EmailServices\Library\EmailServiceManager;
-use EmailServices\Library\Providers\MailgunService;
-use EmailServices\Library\Providers\SendGridService;
-use EmailServices\Library\Providers\PostmarkService;
+use MultiEmailServices\Library\EmailServiceManager;
+use MultiEmailServices\Library\Providers\MailgunService;
+use MultiEmailServices\Library\Providers\SendGridService;
+use MultiEmailServices\Library\Providers\PostmarkService;
 
 // Initialize the Email Service Manager (will use DEFAULT_EMAIL_PROVIDER from .env)
 $emailManager = new EmailServiceManager();

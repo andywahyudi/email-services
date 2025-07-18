@@ -1,8 +1,8 @@
 <?php
 
-namespace EmailServices\Library;
+namespace MultiEmailServices\Library;
 
-use EmailServices\Library\Contracts\EmailServiceInterface;
+use MultiEmailServices\Library\Contracts\EmailServiceInterface;
 
 abstract class AbstractEmailService implements EmailServiceInterface
 {

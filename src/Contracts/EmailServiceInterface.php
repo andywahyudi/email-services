@@ -1,6 +1,6 @@
 <?php
 
-namespace EmailServices\Library\Contracts;
+namespace MultiEmailServices\Library\Contracts;
 
 interface EmailServiceInterface
 {
