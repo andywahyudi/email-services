@@ -20,7 +20,7 @@ A robust PHP library for handling multiple email service providers with failover
 ## Installation
 
 ```bash
-composer require multi-email-services/library
+composer require andywahyudi/multi-email-services
 ```
 ## Configuration
 Create a .env file in your project root (copy from .env.example ):

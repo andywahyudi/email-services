@@ -1,5 +1,5 @@
 {
-    "name": "email-services/library",
+    "name": "andywahyudi/multi-email-services",
     "description": "A PHP library for handling multiple email service providers with failover support",
     "type": "library",
     "require": {
